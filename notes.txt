@@ -1,0 +1,40 @@
+endpoints draft
+
+!! session endpoints should be canned and replaced with account endpoints
+- account
+/account: account info, 401 if not signed into discord, 403 if unregistered
+-post: register account
+-get: get account info
+-put: update account info
+
+- directory
+/users
+filter: party, registered voter (true/false)
+sort: alphabetical, activity score, server seniority, party seniority
+
+/parties
+filter: defunct (true/false)
+sort: alphabetical, members, registered members, seniority, unity score
+
+/petitions (you can only view petitions you have created, or petitions you have signed, or petitions you are tracking)
+filter: status (pending, failed, passed)
+sort: date (creation date if you are the one who created it, otherwise date you signed the petition)
+
+
+---
+pronounds
+they
+he
+she
+it
+
+----
+party options
+presidential candidate process: appointed, elected
+
+----
+party null guide
+null on user party - user is independent/unaffiliated
+null on poll scope - poll is not limited to party
+null on petition scope - petition is not limited to party
+
