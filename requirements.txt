@@ -1,5 +1,5 @@
 aiomysql==0.2.0
-fastapi==0.115.5
+fastapi[standard]==0.115.5
 fastapi_discord==0.2.7
 motor==3.6.0
 pydantic==2.10.1
