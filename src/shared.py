@@ -2,10 +2,11 @@ from fastapi import Depends
 from fastapi_discord import DiscordOAuthClient, User
 import yaml
 import aiomysql
+import os
 from typing import Annotated
 from database import Database
 
-with open('config.yml', 'r') as file:
+with open(os.path.join(os.environ["DATADIR"], "config.yml"), 'r') as file:
     config: dict = yaml.safe_load(file)
 
 discord: DiscordOAuthClient = DiscordOAuthClient(
