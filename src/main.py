@@ -25,6 +25,13 @@ app.include_router(session.router)
 app.include_router(account.router)
 
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=config["cors_origins"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/parties/", response_model=models.PartyCollection)
 async def list_parties():
