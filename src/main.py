@@ -10,14 +10,13 @@ import models
 from contextlib import asynccontextmanager
 
 from routers import session, account
-from shared import discord, db, UserNotRegistered, config, init_linking_db
+from shared import discord, db, UserNotRegistered, config
 
 
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await discord.init()
-    await init_linking_db()
     yield
 
 app = FastAPI(swagger_ui_parameters={"persistAuthorization": True}, lifespan=lifespan)

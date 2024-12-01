@@ -1,7 +1,7 @@
 from fastapi import Depends
 from fastapi_discord import DiscordOAuthClient, User
 import yaml
-import aiomysql
+import requests
 import os
 from typing import Annotated
 from database import Database
@@ -15,11 +15,6 @@ discord: DiscordOAuthClient = DiscordOAuthClient(
 
 db: Database = Database(config["database"]["strudel"]["mongo_uri"])
 
-discord_linking_db: aiomysql.Pool
-
-async def init_linking_db():
-    global discord_linking_db
-    discord_linking_db = await aiomysql.create_pool(**config["database"]["discord_linking"])
 
 
 class UserNotRegistered(Exception):
@@ -45,11 +40,11 @@ async def registration_allowed(current_user: Annotated[dict, Depends(get_current
         raise RegistrationProhibited
 
 async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
-    async with discord_linking_db.acquire() as conn:
-        async with conn.cursor() as cursor:
-            await cursor.execute("SELECT mcuuid FROM PlayerLinks WHERE id = %s", user.id)
-            response = await cursor.fetchone()
-            return response[0]
+    linking_db = requests.get(config["database"]["discord_linking"]["url"]).json()
+
+    for player in linking_db:
+        if player["discordID"] == user.id:
+            return player["mcPlayerUUID"]
 
 
 print("shared called")
