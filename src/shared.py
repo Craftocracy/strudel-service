@@ -45,6 +45,7 @@ async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
     for player in linking_db:
         if player["discordID"] == user.id:
             return player["mcPlayerUUID"]
+    raise RegistrationProhibited
 
 
 print("shared called")
