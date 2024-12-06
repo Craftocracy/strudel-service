@@ -39,13 +39,6 @@ async def list_parties():
 @app.get("/parties/{party_id}", response_model=models.PartyModel)
 async def get_party(party_id: str):
     return await db.get_party(ObjectId(party_id))
-@app.get("/users/", response_model=models.UserCollection)
-async def list_users():
-    return models.UserCollection(users=await db.query_users())
-
-@app.get("/users/{user_id}", response_model=models.UserModel)
-async def get_user(user_id: str):
-    return await db.get_user(ObjectId(user_id))
 
 
 @app.exception_handler(Unauthorized)
