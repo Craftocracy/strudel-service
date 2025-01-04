@@ -1,4 +1,5 @@
 import motor.motor_asyncio
+from bson import ObjectId
 
 class Database:
     def __init__(self, uri: str):
@@ -6,6 +7,8 @@ class Database:
         self._db = self._client.strudel
         self.users = self._db.get_collection("users")
         self.parties = self._db.get_collection("parties")
+        self.elections = self._db.get_collection("elections")
+
 
     async def resolve_user_references(self, user: dict):
         if user["party"] is not None:

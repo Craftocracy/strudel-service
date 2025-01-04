@@ -2,13 +2,28 @@ from typing import Optional, List, Union, Literal
 from pydantic import BaseModel, Field, model_validator
 from pydantic.functional_validators import BeforeValidator
 from fastapi_discord import User
-from shared import db
 
 from typing_extensions import Annotated
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 Pronoun = Literal['they', 'she', 'he', 'it']
+
+Candidate = Literal['Pentagonal / LemonShark', 'Puppy Leanna / jade', 'trif / Gem']
+
+class Ballot(BaseModel):
+    first: Candidate
+    second: Candidate
+    third: Candidate
+
+    @model_validator(mode='before')
+    def alias_values(cls, values):
+        seen = set()
+        for vote in ["first", "second", "third"]:
+            if values[vote] in seen:
+                raise ValueError(f"Duplicate vote in ballot")
+            seen.add(values[vote])
+        return values
 
 class ErrorModel(BaseModel):
     error: str
@@ -72,3 +87,11 @@ class ServerInfoModel(BaseModel):
 class AuthCallbackModel(BaseModel):
     access_token: str
     refresh_token: str
+
+class ElectionModel(BaseModel):
+    voters: List[PartyMemberModel]
+    votes_cast: int
+
+class VoterStatusModel(BaseModel):
+    allowed: bool
+    reason: str
