@@ -20,6 +20,11 @@ sort: alphabetical, members, registered members, seniority, unity score
 filter: status (pending, failed, passed)
 sort: date (creation date if you are the one who created it, otherwise date you signed the petition)
 
+```yaml
+results:
+winner:  Pentagonal / LemonShark
+```
+
 
 ---
 pronounds
