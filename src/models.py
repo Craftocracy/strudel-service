@@ -1,8 +1,10 @@
 from typing import Optional, List, Union, Literal
-from pydantic import BaseModel, Field, model_validator
+
+from bson import ObjectId
+from pydantic import BaseModel, Field, model_validator, field_validator
 from pydantic.functional_validators import BeforeValidator
 from fastapi_discord import User
-
+from shared import db
 from typing_extensions import Annotated
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
@@ -95,3 +97,20 @@ class ElectionModel(BaseModel):
 class VoterStatusModel(BaseModel):
     allowed: bool
     reason: str
+
+class PostProposal(BaseModel):
+    title: str
+    comment: str
+    effect: str
+
+class PostProposalResponse(BaseModel):
+    id: PyObjectId
+
+class ProposalModel(DocumentModel):
+    title: str
+    author: UserModel
+    comment: str
+    effect: str
+
+class ProposalCollection(BaseModel):
+    proposals: List[ProposalModel]

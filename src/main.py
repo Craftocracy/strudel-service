@@ -6,6 +6,7 @@ from fastapi_discord import RateLimited, Unauthorized
 from fastapi_discord.exceptions import ClientSessionNotInitialized
 import datetime
 from bson import ObjectId
+import pprint
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse
 
@@ -13,7 +14,7 @@ import models
 
 from contextlib import asynccontextmanager
 
-from routers import session, account, users
+from routers import session, account, users, proposals
 from shared import discord, db, UserNotRegistered, config, get_current_user
 
 
@@ -39,6 +40,7 @@ app = FastAPI(swagger_ui_parameters={"persistAuthorization": True}, lifespan=lif
 app.include_router(session.router)
 app.include_router(account.router)
 app.include_router(users.router)
+app.include_router(proposals.router)
 
 
 app.add_middleware(
@@ -83,6 +85,49 @@ async def get_am_i_even_allowed_to_vote(current_user: Annotated[dict, Depends(ge
         return {"allowed": False, "reason": "You cannot vote because you registered after the election deadline."}
     return {"allowed": True, "reason": "You are registered to vote."}
 
+@app.get("/my_shitty_test_path", response_model=models.PartyModel)
+async def test_path():
+    pipeline = [
+        {"$match": {"_id": ObjectId("674bf1d126294c56b7ea6493")}},
+        {
+            "$lookup": {
+                "from": "parties",
+                "localField": "party",
+                "foreignField": "_id",
+                "as": "party"
+            }
+        },
+        {"$unwind": {"path": "$party", "preserveNullAndEmptyArrays": True}},
+        #{
+        #    "$lookup": {
+        #        "from": "users",
+        #        "localField": "party.leader",
+        #        "foreignField": "_id",
+        #        "as": "party.leader"
+        #    }
+        #},
+        #{"$unwind": {"path": "$party.leader", "preserveNullAndEmptyArrays": True}},
+    ]
+    p2 = [
+        {"$match": {"_id": ObjectId("66f05b7275f42868b9272beb")}},
+        {"$lookup": {
+            "from": "users",
+            "localField": "leader",
+            "foreignField": "_id",
+            "as": "leader"
+        }},
+        {"$unwind": {"path": "$leader", "preserveNullAndEmptyArrays": True}},
+        {"$lookup": {
+            "from": "users",
+            "localField": "_id",
+            "foreignField": "party",
+            "as": "members"
+        }}
+    ]
+
+    user_document = await db.parties.aggregate(p2).to_list(1)
+    pprint.pprint(user_document[0])
+    return user_document[0]
 
 @app.post("/election", dependencies=[Depends(user_allowed_to_vote)])
 async def cast_ballot(ballot: models.Ballot, current_user: Annotated[dict, Depends(get_current_user)]):

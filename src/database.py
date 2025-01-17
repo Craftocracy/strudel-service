@@ -4,11 +4,13 @@ from bson import ObjectId
 class Database:
     def __init__(self, uri: str):
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-        self._db = self._client.strudel
+        self._db = self._client.get_database("strudel")
         self.users = self._db.get_collection("users")
         self.parties = self._db.get_collection("parties")
         self.elections = self._db.get_collection("elections")
+        self.proposals = self._db.get_collection("proposals")
 
+        self.elections.create_index("slug")
 
     async def resolve_user_references(self, user: dict):
         if user["party"] is not None:
@@ -48,4 +50,3 @@ class Database:
             return await self.resolve_user_references(search)
         except KeyError:
             raise KeyError
-
