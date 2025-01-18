@@ -20,18 +20,6 @@ from shared import discord, db, UserNotRegistered, config, get_current_user
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    elections = await db.elections.find({}).to_list()
-    if len(elections) == 0:
-        users = await db.users.find({}).to_list()
-        rusers = []
-        for i in users:
-            if ObjectId(i["_id"]).generation_time < datetime.datetime.fromtimestamp(1735606800, datetime.UTC):
-                rusers.append({"user": ObjectId(i["_id"]), "voted": False})
-        print(rusers)
-        db.elections.insert_one({"registered_voters": rusers, "ballots": []})
-
-
-
     await discord.init()
     yield
 

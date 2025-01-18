@@ -27,12 +27,28 @@ class Database:
             result.append(await self.resolve_party_references(party))
         return result
 
-    async def query_users(self):
-        result = []
-        async for user in self.users.find():
-            result.append(await self.resolve_user_references(user))
+    async def query_users(self, query: dict = None):
+        if query is None:
+            query = {}
+        pipeline = [
+            {"$match": query},
+            {
+                "$lookup": {
+                    "from": "parties",
+                    "localField": "party",
+                    "foreignField": "_id",
+                    "as": "party"
+                }
+            },
+            {"$unwind": {"path": "$party", "preserveNullAndEmptyArrays": True}},
+            {
+                "$addFields": {
+                    "party": {"$ifNull": ["$party", None]}
+                }
+            }
+        ]
+        result = await self.users.aggregate(pipeline).to_list()
         return result
-
     async def get_party(self, party_id):
         try:
             return await self.parties.find_one({"_id": party_id})
