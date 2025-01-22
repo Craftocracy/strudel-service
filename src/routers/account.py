@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from starlette import status
 
 from shared import discord, get_current_user, requires_registration, registration_allowed, db, get_minecraft_user
 from fastapi_discord import User
@@ -20,6 +19,7 @@ async def register_user(minecraft_user: Annotated[str, Depends(get_minecraft_use
         "mc_uuid": minecraft_user,
         "name": registration.name,
         "pronouns": registration.pronouns,
+        "inactive": False,
         "party": None
     })
     return await db.get_user({"dc_uuid": user.id})

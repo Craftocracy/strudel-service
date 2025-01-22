@@ -1,4 +1,4 @@
-from typing import Optional, List, Union, Literal
+from typing import List, Union, Literal
 from pydantic import BaseModel, Field, model_validator
 from pydantic.functional_validators import BeforeValidator
 from fastapi_discord import User

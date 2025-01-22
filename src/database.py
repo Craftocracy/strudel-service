@@ -1,5 +1,4 @@
 import motor.motor_asyncio
-from bson import ObjectId
 
 class Database:
     def __init__(self, uri: str):
@@ -9,27 +8,36 @@ class Database:
         self.parties = self._db.get_collection("parties")
         self.elections = self._db.get_collection("elections")
 
-
-    async def resolve_user_references(self, user: dict):
-        if user["party"] is not None:
-            user["party"] = await self.parties.find_one({"_id": user["party"]})
-        return user
-
-    async def resolve_party_references(self, party: dict):
-        if party["leader"] is not None:
-            party["leader"] = await self.users.find_one({"_id": party["leader"]})
-        party["members"] = await self.users.find({"party": party["_id"]}).to_list()
-        return party
-
-    async def query_parties(self):
-        result = []
-        async for party in self.parties.find():
-            result.append(await self.resolve_party_references(party))
+    async def query_parties(self, query: dict) -> list:
+        pipeline = [
+            {"$match": query},
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "leader",
+                    "foreignField": "_id",
+                    "as": "leader"
+                }
+            },
+            {"$unwind": {"path": "$leader", "preserveNullAndEmptyArrays": True}},
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "_id",
+                    "foreignField": "party",
+                    "as": "members"
+                }
+            },
+            {
+                "$addFields": {
+                    "party": {"$ifNull": ["$leader", None]}
+                }
+            }
+        ]
+        result = await self.parties.aggregate(pipeline).to_list()
         return result
 
-    async def query_users(self, query: dict = None):
-        if query is None:
-            query = {}
+    async def query_users(self, query: dict) -> list:
         pipeline = [
             {"$match": query},
             {
@@ -49,19 +57,14 @@ class Database:
         ]
         result = await self.users.aggregate(pipeline).to_list()
         return result
-    async def get_party(self, party_id):
-        try:
-            return await self.parties.find_one({"_id": party_id})
-        except KeyError:
+    async def get_party(self, query: dict) -> dict:
+        search = await self.query_parties(query)
+        if len(search) == 0:
             raise KeyError
-    async def get_user(self, query):
-        if type(query) == str:
-            query = {"_id": query}
-        try:
-            search = await self.users.find_one(query)
-            if search is None:
-                return None
-            return await self.resolve_user_references(search)
-        except KeyError:
-            raise KeyError
+        return search[0]
 
+    async def get_user(self, query: dict) -> dict:
+        search = await self.query_users(query)
+        if len(search) == 0:
+            raise KeyError
+        return search[0]

@@ -1,10 +1,6 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
-from fastapi_discord import User
+from fastapi import APIRouter
 import models
-from models import SessionInfoModel
-from shared import discord, get_current_user, requires_registration
+from shared import discord
 
 
 router = APIRouter()
