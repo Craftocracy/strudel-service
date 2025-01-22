@@ -1,7 +1,5 @@
-import datetime
-
 from bson import ObjectId
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from shared import db
 import models
 
@@ -14,4 +12,4 @@ async def list_users():
 
 @router.get("/{user_id}", response_model=models.UserModel)
 async def get_user(user_id: str):
-    return await db.get_user(ObjectId(user_id))
+    return await db.get_user({"_id": ObjectId(user_id)})

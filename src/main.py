@@ -1,13 +1,11 @@
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse
 from fastapi_discord import RateLimited, Unauthorized
 from fastapi_discord.exceptions import ClientSessionNotInitialized
-import datetime
 from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import HTMLResponse
 
 import models
 
@@ -90,11 +88,11 @@ async def cast_ballot(ballot: models.Ballot, current_user: Annotated[dict, Depen
 
 @app.get("/parties/", response_model=models.PartyCollection)
 async def list_parties():
-    return models.PartyCollection(parties=await db.query_parties())
+    return models.PartyCollection(parties=await db.query_parties({}))
 
 @app.get("/parties/{party_id}", response_model=models.PartyModel)
 async def get_party(party_id: str):
-    return await db.get_party(ObjectId(party_id))
+    return await db.get_party({"_id": ObjectId(party_id)})
 
 
 @app.exception_handler(Unauthorized)

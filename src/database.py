@@ -1,5 +1,4 @@
 import motor.motor_asyncio
-from bson import ObjectId
 
 class Database:
     def __init__(self, uri: str):
@@ -9,9 +8,7 @@ class Database:
         self.parties = self._db.get_collection("parties")
         self.elections = self._db.get_collection("elections")
 
-    async def query_parties(self, query: dict = None):
-        if query is None:
-            query = {}
+    async def query_parties(self, query: dict) -> list:
         pipeline = [
             {"$match": query},
             {
@@ -40,9 +37,7 @@ class Database:
         result = await self.parties.aggregate(pipeline).to_list()
         return result
 
-    async def query_users(self, query: dict = None) -> list:
-        if query is None:
-            query = {}
+    async def query_users(self, query: dict) -> list:
         pipeline = [
             {"$match": query},
             {
@@ -62,14 +57,14 @@ class Database:
         ]
         result = await self.users.aggregate(pipeline).to_list()
         return result
-    async def get_party(self, party_id: ObjectId | str):
-        search = await self.query_parties({"_id": ObjectId(party_id)})
+    async def get_party(self, query: dict) -> dict:
+        search = await self.query_parties(query)
         if len(search) == 0:
             raise KeyError
         return search[0]
 
-    async def get_user(self, user_id: ObjectId | str):
-        search = await self.query_users({"_id": ObjectId(user_id)})
+    async def get_user(self, query: dict) -> dict:
+        search = await self.query_users(query)
         if len(search) == 0:
             raise KeyError
         return search[0]
