@@ -7,7 +7,7 @@ from typing_extensions import Annotated
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-Pronoun = Literal['they', 'she', 'he', 'it']
+Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
 Candidate = Literal[
     "TheBrokenFox / spiderpickl",
