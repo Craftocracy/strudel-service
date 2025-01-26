@@ -24,7 +24,10 @@ class RegistrationProhibited(Exception):
     """An Exception raised when the user is not allowed to register."""
 
 async def get_current_user(dc_user: Annotated[User, Depends(discord.user)]):
-    return await db.get_user({"dc_uuid": dc_user.id})
+    try:
+        return await db.get_user({"dc_uuid": dc_user.id})
+    except KeyError:
+        return None
 
 
 async def requires_registration(current_user: Annotated[dict, Depends(get_current_user)]):
