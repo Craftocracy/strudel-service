@@ -5,6 +5,7 @@ import requests
 import os
 from typing import Annotated
 from database import Database
+from urllib.parse import urljoin
 
 with open(os.path.join(os.environ["DATADIR"], "config.yml"), 'r') as file:
     config: dict = yaml.safe_load(file)
@@ -49,6 +50,10 @@ async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
         if player["discordID"] == user.id:
             return player["mcPlayerUUID"]
     raise RegistrationProhibited
+
+
+def webapp_page(path: str):
+    return urljoin(config["web_base"], path)
 
 
 print("shared called")

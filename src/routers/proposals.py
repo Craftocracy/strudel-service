@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
+from bot import bot
 from fastapi.responses import JSONResponse
 import datetime
 
 
-from shared import db, get_current_user, discord
+from shared import db, get_current_user, discord, webapp_page
 import models
 router = APIRouter(prefix="/proposals", tags=["Proposals"])
 
@@ -18,7 +19,7 @@ async def get_proposal(proposal: int):
     return await db.get_proposal({"_id": proposal})
 
 @router.post("/", dependencies=[Depends(discord.requires_authorization)], response_model=models.ProposalReferenceModel)
-async def post_proposal(proposal: models.PostProposalModel, current_user: Annotated[dict, Depends(get_current_user)]):
+async def post_proposal(proposal: models.PostProposalModel, current_user: Annotated[dict, Depends(get_current_user)], background_tasks: BackgroundTasks):
     s = await db.get_next_sequence_value("proposals")
     timestamp = datetime.datetime.now(tz=datetime.timezone.utc)
     await db.proposals.insert_one({
@@ -32,6 +33,8 @@ async def post_proposal(proposal: models.PostProposalModel, current_user: Annota
             {"timestamp": timestamp, "body": proposal.body}
         ],
     })
+    background_tasks.add_task(bot.notify, message=f"New proposal added by <@{current_user['dc_uuid']}>: {proposal.title}\n"
+                                                  f"<{webapp_page(f"/proposals/{str(s)}")}>")
     return await db.get_proposal({"_id": s})
 
 @router.post("/{proposal}/revise", dependencies=[Depends(discord.requires_authorization)], response_model=models.ProposalReferenceModel)

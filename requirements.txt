@@ -9,3 +9,4 @@ starlette==0.41.3
 typing_extensions
 requests
 pymongo
+py-cord

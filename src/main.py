@@ -8,12 +8,13 @@ from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
 
 import models
-
+import asyncio
+import uvicorn
 from contextlib import asynccontextmanager
 
 from routers import session, account, users, proposals
 from shared import discord, db, UserNotRegistered, config, get_current_user
-
+from bot import bot
 
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
@@ -23,9 +24,10 @@ async def lifespan(app: FastAPI):
         async for user in db.users.find({"party": ObjectId("678cf02d79a12f76db9af7ae")}):
             voters.append({"user": ObjectId(user["_id"]), "voted": False})
         await db.elections.insert_one({"current": True, "registered_voters": voters, "ballots": []})
-
-
     await discord.init()
+
+    loop = asyncio.get_event_loop()
+    bot_task = loop.create_task(bot.client.start(config["discord"]["bot_token"]))
     yield
 
 app = FastAPI(swagger_ui_parameters={"persistAuthorization": True}, lifespan=lifespan)

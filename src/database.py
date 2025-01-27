@@ -6,7 +6,7 @@ from pymongo import ReturnDocument
 class Database:
     def __init__(self, uri: str):
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-        self._db = self._client.strudel
+        self._db = self._client.get_database("strudel")
         self.users = self._db.get_collection("users")
         self.parties = self._db.get_collection("parties")
         self.elections = self._db.get_collection("elections")
