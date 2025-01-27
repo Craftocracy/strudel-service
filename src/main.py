@@ -11,7 +11,7 @@ import models
 
 from contextlib import asynccontextmanager
 
-from routers import session, account, users
+from routers import session, account, users, proposals
 from shared import discord, db, UserNotRegistered, config, get_current_user
 
 
@@ -20,7 +20,7 @@ from shared import discord, db, UserNotRegistered, config, get_current_user
 async def lifespan(app: FastAPI):
     if await db.elections.find_one({"current": True}) is None:
         voters = []
-        async for user in db.users.find({"inactive": False}):
+        async for user in db.users.find({"party": ObjectId("678cf02d79a12f76db9af7ae")}):
             voters.append({"user": ObjectId(user["_id"]), "voted": False})
         await db.elections.insert_one({"current": True, "registered_voters": voters, "ballots": []})
 
@@ -32,6 +32,7 @@ app = FastAPI(swagger_ui_parameters={"persistAuthorization": True}, lifespan=lif
 app.include_router(session.router)
 app.include_router(account.router)
 app.include_router(users.router)
+app.include_router(proposals.router)
 
 
 app.add_middleware(
@@ -47,7 +48,7 @@ async def get_election():
     election =  await db.elections.find_one({"current": True})
     voters = []
     for i in election["registered_voters"]:
-        voters.append(await db.get_user(i["user"]))
+        voters.append(await db.get_user({"_id": i["user"]}))
     return {"voters": voters, "votes_cast": len(election["ballots"])}
 
 async def user_allowed_to_vote(current_user: Annotated[dict, Depends(get_current_user)]):
