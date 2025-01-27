@@ -8,5 +8,4 @@ PyYAML==6.0.2
 starlette==0.41.3
 typing_extensions
 requests
-bson
 pymongo
