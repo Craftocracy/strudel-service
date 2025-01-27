@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
-Pronoun = Literal['they', 'she', 'he', 'it']
+Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
 Candidate = Literal[
     ".Ihavenoname",
@@ -101,6 +101,7 @@ class VoterStatusModel(BaseModel):
     allowed: bool
     reason: str
 
+
 class PostProposalModel(BaseModel):
     title: str = Field(max_length=70)
     body: str = Field(max_length=10000)
@@ -127,3 +128,4 @@ class ProposalReferenceModel(DocumentModel):
 
 class ProposalCollection(BaseModel):
     proposals: List[ProposalReferenceModel]
+
