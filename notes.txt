@@ -38,3 +38,33 @@ null on user party - user is independent/unaffiliated
 null on poll scope - poll is not limited to party
 null on petition scope - petition is not limited to party
 
+ALL PROPOSALS
+1. An act to ban Raccoonsarecute
+2. Legislation to disable firetick
+3. Domino's Pizza Promise Expansion Act
+4. An act to fine Lemonshark
+5. An act to unban Funnycat
+6. An act to ban Raccoonsarecute
+7. my shit keeps getting blown up act
+8. Filter me this Act
+9. Are we there yet Act
+10. Woke JEI Act
+11. Yummy Yummy in my Tummy Act
+12. An act to add Veinminer
+13. Ouppy act
+14. Backpack Act
+15. The Industrial Stick Act
+16. Train freaks Act
+17. Responsible Campaigning Act
+18. open the border joe biden act
+19. An act to allow iron farms on the server
+20. Add fucking tree feller
+21. SILLY SHARK ACT
+22. SNOWBALL FIGHT
+23. Bill for better storage
+
+
+{
+  "title": "Defining the Presidency Act",
+  "body": "Authors: Pentagonal, sauce_dude, v1scosity, Random_Medic, CiCi\n﻿\ni am writing this proposal because i lov the president and think he needs more power\n﻿\nIf passed:\nAllow the president to at anytime, including outside of meetings, propose an \"executive action\". These votes would require 2/3 approval to pass. Executive actions are not allowed to concern the following:\n1. Changes to the modpack, on both the server side and the client side\n2. Partial or complete nullification of any legislative actions\n3. Election rules and schedules\n4. Moderation actions such as banning users (executive actions can still concern laws that would ban people as punishment)\n \nAllow the president to add up to 4 proposals to a legislative meetings' agenda."
+}

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Union, Literal
 from pydantic import BaseModel, Field, model_validator
 from pydantic.functional_validators import BeforeValidator
@@ -10,24 +11,20 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 Pronoun = Literal['they', 'she', 'he', 'it']
 
 Candidate = Literal[
-    "TheBrokenFox / spiderpickl",
-    "Pentagonal / Big Todd",
-    "dominoexists / Gem",
-    "CiCi / Sol",
-    "poop barrel / trif"
+    ".Ihavenoname",
+    "Kio",
+    "Pentagonal",
 ]
 
 class Ballot(BaseModel):
     first: Candidate
     second: Candidate
     third: Candidate
-    fourth: Candidate
-    fifth: Candidate
 
     @model_validator(mode='before')
     def alias_values(cls, values):
         seen = set()
-        for vote in ["first", "second", "third", "fourth", "fifth"]:
+        for vote in ["first", "second", "third"]:
             if values[vote] in seen:
                 raise ValueError(f"Duplicate vote in ballot")
             seen.add(values[vote])
@@ -51,7 +48,7 @@ class UserPartyModel(DocumentModel):
     color: str
 
 class UserModel(DocumentModel):
-    name: str = Field(min_length=1, max_length=32)
+    name: str
     dc_uuid: str
     mc_uuid: str
     party: Union[UserPartyModel, None]
@@ -86,7 +83,7 @@ class SessionInfoModel(DocumentModel):
     user: UserAccountModel
 
 class RegistrationModel(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=32)
     pronouns: Pronoun
 
 class ServerInfoModel(BaseModel):
@@ -103,3 +100,30 @@ class ElectionModel(BaseModel):
 class VoterStatusModel(BaseModel):
     allowed: bool
     reason: str
+
+class PostProposalModel(BaseModel):
+    title: str = Field(max_length=70)
+    body: str = Field(max_length=10000)
+
+class ReviseProposalModel(BaseModel):
+    body: str = Field(max_length=10000)
+
+class ProposalRevisionModel(BaseModel):
+    body: str = Field(max_length=10000)
+    timestamp: datetime
+
+class ProposalModel(DocumentModel):
+    title: str
+    author: UserModel
+    invalid: bool
+    rejection_reason: str
+    revisions: List[ProposalRevisionModel]
+    revisions_allowed: bool
+
+class ProposalReferenceModel(DocumentModel):
+    title: str
+    author: UserModel
+    invalid: bool
+
+class ProposalCollection(BaseModel):
+    proposals: List[ProposalReferenceModel]
