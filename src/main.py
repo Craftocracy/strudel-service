@@ -12,7 +12,7 @@ import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
 
-from routers import session, account, users, proposals
+from routers import session, account, users, proposals, polls
 from shared import discord, db, UserNotRegistered, config, get_current_user
 from bot import bot
 
@@ -35,7 +35,7 @@ app.include_router(session.router)
 app.include_router(account.router)
 app.include_router(users.router)
 app.include_router(proposals.router)
-
+app.include_router(polls.router)
 
 app.add_middleware(
     CORSMiddleware,

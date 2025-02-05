@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Union, Literal
+from typing import List, Union, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 from pydantic.functional_validators import BeforeValidator
 from fastapi_discord import User
@@ -129,3 +129,34 @@ class ProposalReferenceModel(DocumentModel):
 class ProposalCollection(BaseModel):
     proposals: List[ProposalReferenceModel]
 
+class PollChoice(BaseModel):
+    body: str
+
+class PollChoiceResultsModel(PollChoice):
+    votes: int
+
+class PostPollModel(BaseModel):
+    title: str
+    choices: List[PollChoice]
+    proposal: int
+
+class PollReferenceModel(DocumentModel):
+    title: str
+    choices: List[PollChoiceResultsModel]
+    proposal: int
+    total_voters: int
+
+class PollCollection(BaseModel):
+    polls: List[PollReferenceModel]
+
+class PollVoterModel(BaseModel):
+    user: UserModel
+    choice: Union[str, None]
+
+class PollModel(PollReferenceModel):
+    voters: List[PollVoterModel]
+
+
+
+class PostPollVoteModel(BaseModel):
+    body: str
