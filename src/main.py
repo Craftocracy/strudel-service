@@ -21,7 +21,7 @@ from bot import bot
 async def lifespan(app: FastAPI):
     if await db.elections.find_one({"current": True}) is None:
         voters = []
-        async for user in db.users.find({"party": ObjectId("678cf02d79a12f76db9af7ae")}):
+        async for user in db.users.find({"party": ObjectId("678cf02d79a12f76db9af7ae"), "inactive": False}):
             voters.append({"user": ObjectId(user["_id"]), "voted": False})
         await db.elections.insert_one({"current": True, "registered_voters": voters, "ballots": []})
     await discord.init()
