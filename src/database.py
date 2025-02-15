@@ -106,7 +106,7 @@ class Database:
         result = await self.proposals.aggregate(pipeline).to_list()
         return result
 
-    async def query_polls(self, query: dict) -> list:
+    async def query_polls(self, query: dict, respect_secrets: bool = True) -> list:
         pipeline = [
             {"$match": query},
             {
@@ -224,10 +224,17 @@ class Database:
             {"$sort": { "_id": 1 }}
         ]
         result = await self.polls.aggregate(pipeline).to_list()
+        if respect_secrets is True:
+            for poll in result:
+                if poll["secret"] is True:
+                    poll["voters"] = []
+                    if poll["can_change_vote"] is True:
+                        for choice in poll["choices"]:
+                            choice["votes"] = 0
         return result
 
-    async def get_poll(self, query: dict) -> dict:
-        search = await self.query_polls(query)
+    async def get_poll(self, query: dict, respect_secrets: bool = True) -> dict:
+        search = await self.query_polls(query, respect_secrets=respect_secrets)
         if len(search) == 0:
             raise KeyError
         return search[0]

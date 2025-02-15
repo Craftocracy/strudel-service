@@ -134,8 +134,10 @@ class PollChoiceResultsModel(PollChoice):
 
 class PostPollModel(BaseModel):
     title: str
-    choices: List[PollChoice]
+    choices: List[PollChoice] = Field(default=[PollChoice(body="Yes"), PollChoice(body="No")])
     proposal: int
+    secret: bool = Field(default=False)
+    party: Optional[str] = Field(default=None)
 
 class PollReferenceModel(DocumentModel):
     title: str

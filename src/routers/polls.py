@@ -32,7 +32,11 @@ async def get_poll(poll_id: str):
     return await db.get_poll({"_id": ObjectId(poll_id)})
 
 async def after_vote(poll_id: str):
-    poll = await db.get_poll({"_id": ObjectId(poll_id)})
+    poll = await db.get_poll({"_id": ObjectId(poll_id)}, respect_secrets=False)
+    if poll["secret"] is True:
+        current_votes = sum(choice["votes"] for choice in poll["choices"])
+        if current_votes != poll["total_voters"]:
+            return
     if poll["can_change_vote"] is False:
         return
     goal_name = ""
@@ -91,10 +95,14 @@ async def post_poll(poll: models.PostPollModel, current_user: Annotated[dict, De
     if current_user["dc_uuid"] != "928058365286973452":
         raise Exception
     current_datetime = datetime.now(timezone.utc)
-    voters = [{"user": user["_id"], "choice": None} for user in await db.query_users({"inactive": False})]
+    voters_query = {"inactive": False}
+    if poll.party is not None:
+        voters_query["party"] = ObjectId(poll.party)
+    voters = [{"user": user["_id"], "choice": None} for user in await db.query_users(voters_query)]
     insert = await db.polls.insert_one({
         "title": poll.title,
         "proposal": poll.proposal,
+        "secret": poll.secret,
         "choices": [choice.model_dump() for choice in poll.choices],
         "voters": voters,
         "timestamp": current_datetime,
