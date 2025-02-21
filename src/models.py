@@ -11,8 +11,10 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
 Candidate = Literal[
-    "milowyorhi",
-    "Pentagonal",
+    "CiCi / Sol",
+    "dominoexists / PetBat",
+    "Pentagonal / poop barrel",
+    "milowyorhi / Alibaba"
 ]
 
 class Ballot(BaseModel):
