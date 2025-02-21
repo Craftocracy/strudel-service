@@ -19,11 +19,13 @@ Candidate = Literal[
 
 class Ballot(BaseModel):
     first: Candidate
-
+    second: Candidate
+    third: Candidate
+    fourth: Candidate
     @model_validator(mode='before')
     def alias_values(cls, values):
         seen = set()
-        for vote in ["first"]:
+        for vote in ["first", "second", "third", "fourth"]:
             if values[vote] in seen:
                 raise ValueError(f"Duplicate vote in ballot")
             seen.add(values[vote])
