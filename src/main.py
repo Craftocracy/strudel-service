@@ -19,7 +19,7 @@ from bot import bot
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if await db.elections.find_one({"current": True}) is None:
+    if await db.elections.find_one({"current": True, "party": ObjectId("678cf02d79a12f76db9af7ae")}) is None:
         voters = []
         async for user in db.users.find({"inactive": False}):
             voters.append({"user": ObjectId(user["_id"]), "voted": False})

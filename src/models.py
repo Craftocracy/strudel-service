@@ -11,21 +11,17 @@ PyObjectId = Annotated[str, BeforeValidator(str)]
 Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
 Candidate = Literal[
-    "CiCi / Sol",
-    "dominoexists / PetBat",
-    "Pentagonal / poop barrel",
-    "milowyorhi / Alibaba"
+    "Pentagonal",
+    "v1scosity"
 ]
 
 class Ballot(BaseModel):
     first: Candidate
-    second: Candidate
-    third: Candidate
-    fourth: Candidate
+
     @model_validator(mode='before')
     def alias_values(cls, values):
         seen = set()
-        for vote in ["first", "second", "third", "fourth"]:
+        for vote in ["first"]:
             if values[vote] in seen:
                 raise ValueError(f"Duplicate vote in ballot")
             seen.add(values[vote])
