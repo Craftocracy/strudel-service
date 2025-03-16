@@ -89,6 +89,220 @@ async def cast_ballot(ballot: models.Ballot, current_user: Annotated[dict, Depen
     print(election)
     return ""
 
+# ao start
+@app.post("/prediction_vote")
+async def cast_ballot(ballot: models.Ballot):
+    election =  await db.elections.find_one({"ao": True})
+    if not election["open"]:
+        raise Exception
+    await db.elections.update_one({"_id": election["_id"]}, {"$push": {"ballots": ballot.model_dump()}})
+    return ""
+
+@app.get("/prediction_results", response_model=dict)
+async def prediction_results():
+    pipeline = [
+        {
+            '$match': {
+                'ao': True
+            }
+        }, {
+            '$addFields': {
+                'ballotCount': {
+                    '$size': '$ballots'
+                }
+            }
+        }, {
+            '$unwind': '$ballots'
+        }, {
+            '$set': {
+                'choices': {
+                    '$let': {
+                        'vars': {
+                            'eliminated': []
+                        },
+                        'in': [
+                            {
+                                '$cond': {
+                                    'if': {
+                                        '$not': {
+                                            '$in': [
+                                                '$ballots.first', '$$eliminated'
+                                            ]
+                                        }
+                                    },
+                                    'then': '$ballots.first',
+                                    'else': None
+                                }
+                            }, {
+                                '$cond': {
+                                    'if': {
+                                        '$not': {
+                                            '$in': [
+                                                '$ballots.second', '$$eliminated'
+                                            ]
+                                        }
+                                    },
+                                    'then': '$ballots.second',
+                                    'else': None
+                                }
+                            }, {
+                                '$cond': {
+                                    'if': {
+                                        '$not': {
+                                            '$in': [
+                                                '$ballots.third', '$$eliminated'
+                                            ]
+                                        }
+                                    },
+                                    'then': '$ballots.third',
+                                    'else': None
+                                }
+                            }, {
+                                '$cond': {
+                                    'if': {
+                                        '$not': {
+                                            '$in': [
+                                                '$ballots.fourth', '$$eliminated'
+                                            ]
+                                        }
+                                    },
+                                    'then': '$ballots.fourth',
+                                    'else': None
+                                }
+                            }, {
+                                '$cond': {
+                                    'if': {
+                                        '$not': {
+                                            '$in': [
+                                                '$ballots.fifth', '$$eliminated'
+                                            ]
+                                        }
+                                    },
+                                    'then': '$ballots.fifth',
+                                    'else': None
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }, {
+            '$set': {
+                'validChoice': {
+                    '$arrayElemAt': [
+                        {
+                            '$filter': {
+                                'input': '$choices',
+                                'as': 'choice',
+                                'cond': {
+                                    '$ne': [
+                                        '$$choice', None
+                                    ]
+                                }
+                            }
+                        }, 0
+                    ]
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$validChoice',
+                'count': {
+                    '$sum': 1
+                },
+                'ballotCount': {
+                    '$first': '$ballotCount'
+                }
+            }
+        }, {
+            '$sort': {
+                'count': -1
+            }
+        }, {
+            '$group': {
+                '_id': None,
+                'totalVotes': {
+                    '$sum': '$count'
+                },
+                'results': {
+                    '$push': {
+                        'candidate': '$_id',
+                        'count': '$count'
+                    }
+                },
+                'ballotCount': {
+                    '$first': '$ballotCount'
+                }
+            }
+        }, {
+            '$unwind': '$results'
+        }, {
+            '$set': {
+                'results.percentage': {
+                    '$round': [
+                        {
+                            '$multiply': [
+                                {
+                                    '$divide': [
+                                        '$results.count', '$totalVotes'
+                                    ]
+                                }, 100
+                            ]
+                        }, 2
+                    ]
+                }
+            }
+        }, {
+            '$group': {
+                '_id': None,
+                'candidates': {
+                    '$push': {
+                        'k': '$results.candidate',
+                        'v': {
+                            'count': '$results.count',
+                            'percentage': '$results.percentage'
+                        }
+                    }
+                },
+                'ballotCount': {
+                    '$first': '$ballotCount'
+                }
+            }
+        }, {
+            '$replaceRoot': {
+                'newRoot': {
+                    '$mergeObjects': [
+                        {
+                            'candidates': {
+                                '$arrayToObject': '$candidates'
+                            }
+                        }, {
+                            'ballotCount': '$ballotCount',
+                            'ballotPercentage': {
+                                '$round': [
+                                    {
+                                        '$multiply': [
+                                            {
+                                                '$divide': [
+                                                    '$ballotCount', 28
+                                                ]
+                                            }, 100
+                                        ]
+                                    }, 2
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+    election = await db.elections.find_one({"ao": True})
+    results = db.elections.aggregate(pipeline)
+    res = await results.to_list()
+    return res[0]
+# ao end
+
 @app.get("/parties/", response_model=models.PartyCollection)
 async def list_parties():
     return models.PartyCollection(parties=await db.query_parties({}))
