@@ -2,8 +2,8 @@ from fastapi import APIRouter
 import models
 from shared import discord
 
-
 router = APIRouter()
+
 
 @router.get("/", response_model=models.ServerInfoModel)
 async def server_info():

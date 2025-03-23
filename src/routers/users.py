@@ -10,6 +10,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 async def list_users():
     return models.UserCollection(users=await db.query_users({"inactive": False}))
 
+
 @router.get("/{user_id}", response_model=models.UserModel)
 async def get_user(user_id: str):
     return await db.get_user({"_id": ObjectId(user_id)})

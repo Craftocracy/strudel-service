@@ -17,12 +17,13 @@ discord: DiscordOAuthClient = DiscordOAuthClient(
 db: Database = Database(config["database"]["strudel"]["mongo_uri"])
 
 
-
 class UserNotRegistered(Exception):
     """An Exception raised when user is authorized, but not registered."""
 
+
 class RegistrationProhibited(Exception):
     """An Exception raised when the user is not allowed to register."""
+
 
 async def get_current_user(dc_user: Annotated[User, Depends(discord.user)]):
     try:
@@ -37,11 +38,13 @@ async def requires_registration(current_user: Annotated[dict, Depends(get_curren
     else:
         raise UserNotRegistered
 
+
 async def registration_allowed(current_user: Annotated[dict, Depends(get_current_user)]):
     if current_user is None:
         return True
     else:
         raise RegistrationProhibited
+
 
 async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
     linking_db = requests.get(config["database"]["discord_linking"]["url"]).json()

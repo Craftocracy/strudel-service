@@ -1,5 +1,4 @@
 from typing import Annotated, List
-import pprint
 from bson import ObjectId
 from fastapi import APIRouter, Depends, BackgroundTasks
 
@@ -8,7 +7,6 @@ from shared import db, discord, get_current_user, webapp_page
 import models
 import math
 from datetime import datetime, timedelta, timezone
-
 
 router = APIRouter(prefix="/polls", tags=["Polls"])
 
@@ -27,9 +25,11 @@ async def get_polls():
     search = await db.query_polls({})
     return {"polls": search}
 
+
 @router.get("/{poll_id}", response_model=models.PollModel)
 async def get_poll(poll_id: str):
     return await db.get_poll({"_id": ObjectId(poll_id)})
+
 
 async def after_vote(poll_id: str):
     poll = await db.get_poll({"_id": ObjectId(poll_id)}, respect_secrets=False)
@@ -50,10 +50,9 @@ async def after_vote(poll_id: str):
                          f"{webapp_page(f"/polls/{poll_id}")}")
 
 
-
-
 @router.post("/{poll_id}/vote", dependencies=[Depends(discord.requires_authorization)])
-async def poll_vote(poll_id: str, current_user: Annotated[dict, Depends(get_current_user)], choice: models.PostPollVoteModel, background_tasks: BackgroundTasks):
+async def poll_vote(poll_id: str, current_user: Annotated[dict, Depends(get_current_user)],
+                    choice: models.PostPollVoteModel, background_tasks: BackgroundTasks):
     # FIX THIS SHIT!!
     pipeline = [
         # Unwind the voters array
@@ -86,7 +85,8 @@ async def poll_vote(poll_id: str, current_user: Annotated[dict, Depends(get_curr
         raise Exception
     if poll["can_change_vote"] is False and poll["user_choice"] is not None:
         raise Exception
-    await db.polls.update_one({"_id": poll["_id"]}, {"$set": {"voters.$[elem].choice": choice.body}}, array_filters=[{"elem.user": ObjectId(current_user["_id"])}])
+    await db.polls.update_one({"_id": poll["_id"]}, {"$set": {"voters.$[elem].choice": choice.body}},
+                              array_filters=[{"elem.user": ObjectId(current_user["_id"])}])
     background_tasks.add_task(after_vote, poll_id)
 
 

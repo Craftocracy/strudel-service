@@ -2,7 +2,8 @@ from bson.codec_options import CodecOptions
 import motor.motor_asyncio
 from pymongo import ReturnDocument
 
-options = CodecOptions(tz_aware = True)
+options = CodecOptions(tz_aware=True)
+
 
 class Database:
     def __init__(self, uri: str):
@@ -24,7 +25,6 @@ class Database:
             upsert=True
         )
         return result['sequence_value']
-
 
     async def query_parties(self, query: dict) -> list:
         pipeline = [
@@ -221,7 +221,7 @@ class Database:
                     }
                 }
             },
-            {"$sort": { "_id": 1 }}
+            {"$sort": {"_id": 1}}
         ]
         result = await self.polls.aggregate(pipeline).to_list()
         if respect_secrets is True:
