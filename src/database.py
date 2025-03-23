@@ -28,27 +28,27 @@ class Database:
 
     async def query_parties(self, query: dict) -> list:
         pipeline = [
-            {"$match": query},
             {
-                "$lookup": {
-                    "from": "users",
-                    "localField": "leader",
-                    "foreignField": "_id",
-                    "as": "leader"
+                '$match': query
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'leader',
+                    'foreignField': '_id',
+                    'as': 'leader'
                 }
-            },
-            {"$unwind": {"path": "$leader", "preserveNullAndEmptyArrays": True}},
-            {
-                "$lookup": {
-                    "from": "users",
-                    "localField": "_id",
-                    "foreignField": "party",
-                    "as": "members"
+            }, {
+                '$unwind': {
+                    'path': '$leader',
+                    'preserveNullAndEmptyArrays': True
                 }
-            },
-            {
-                "$addFields": {
-                    "party": {"$ifNull": ["$leader", None]}
+            }, {
+                '$addFields': {
+                    'leader': {
+                        '$ifNull': [
+                            '$leader', None
+                        ]
+                    }
                 }
             }
         ]

@@ -68,7 +68,6 @@ class PartyModel(DocumentModel):
     name: str
     shorthand: str
     color: str
-    members: List[PartyMemberModel]
     leader: Union[PartyLeaderModel, None]
 
 
