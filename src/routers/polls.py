@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from bson import ObjectId
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, Query
+from pydantic import BaseModel
 
 from bot import bot
-from shared import db, discord, get_current_user, webapp_page
+from shared import db, discord, get_current_user, maybe_get_current_user, webapp_page
 import models
 import math
 from datetime import datetime, timedelta, timezone
@@ -20,9 +21,43 @@ def thresholds(total: int) -> List[int]:
     return [pass_threshold, fail_threshold]
 
 
+class FilterParams(BaseModel):
+    poll_open: Optional[bool] = None
+    i_voted: Optional[bool] = None
+    i_can_vote: Optional[bool] = None
+
+
 @router.get("/", response_model=models.PollCollection)
-async def get_polls():
-    search = await db.query_polls({})
+async def get_polls(filter_query: Annotated[FilterParams, Query()],
+                    current_user: Annotated[dict, Depends(maybe_get_current_user)]):
+    query = filter_query.model_dump(exclude_unset=True)
+    if "poll_open" in query:
+        if filter_query.poll_open:
+            operator = "$gt"
+        else:
+            operator = "$lte"
+        query["closes"] = {operator: datetime.now(timezone.utc)}
+        query.pop("poll_open")
+    if "i_can_vote" in query:
+        if current_user is not None:
+            match = {"$elemMatch": {"user": current_user["_id"]}}
+            if filter_query.i_can_vote:
+                query["voters"] = match
+            else:
+                query["voters"] = {"$not": match}
+        query.pop("i_can_vote")
+    if "i_voted" in query:
+        if current_user is not None:
+            if filter_query.i_voted:
+                choice = {"$ne": None}
+            else:
+                choice = None
+            query["voters"] = {"$elemMatch": {
+                "user": current_user["_id"],
+                "choice": choice
+            }}
+        query.pop("i_voted")
+    search = await db.query_polls(query)
     return {"polls": search}
 
 

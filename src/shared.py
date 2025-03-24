@@ -1,5 +1,5 @@
-from fastapi import Depends
-from fastapi_discord import DiscordOAuthClient, User
+from fastapi import Depends, Request
+from fastapi_discord import DiscordOAuthClient, User, Unauthorized
 import yaml
 import requests
 import os
@@ -29,6 +29,13 @@ async def get_current_user(dc_user: Annotated[User, Depends(discord.user)]):
     try:
         return await db.get_user({"dc_uuid": dc_user.id})
     except KeyError:
+        return None
+
+
+async def maybe_get_current_user(request: Request):
+    try:
+        return await get_current_user(dc_user=await discord.user(request))
+    except (KeyError, Unauthorized):
         return None
 
 
