@@ -1,6 +1,9 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, BackgroundTasks
+from bson import ObjectId
+from fastapi import APIRouter, Depends, BackgroundTasks, Query
+from pydantic import BaseModel
+
 from bot import bot
 from fastapi.responses import JSONResponse
 import datetime
@@ -11,9 +14,17 @@ import models
 router = APIRouter(prefix="/proposals", tags=["Proposals"])
 
 
+class FilterParams(BaseModel):
+    author: Optional[str] = None
+    invalid: Optional[bool] = None
+
+
 @router.get("/", response_model=models.ProposalCollection)
-async def get_proposals():
-    return {"proposals": await db.query_proposals({})}
+async def get_proposals(filter_query: Annotated[FilterParams, Query()]):
+    query = filter_query.model_dump(exclude_unset=True)
+    if query.get("author"):
+        query["author"] = ObjectId(query.pop("author"))
+    return {"proposals": await db.query_proposals(query)}
 
 
 @router.get("/{proposal}", response_model=models.ProposalModel)
