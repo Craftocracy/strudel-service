@@ -103,12 +103,6 @@ class AuthCallbackModel(BaseModel):
     access_token: str
     refresh_token: str
 
-
-class ElectionModel(BaseModel):
-    voters: List[PartyMemberModel]
-    votes_cast: int
-
-
 class VoterStatusModel(BaseModel):
     allowed: bool
     reason: str
@@ -185,3 +179,39 @@ class PollModel(PollReferenceModel):
 
 class PostPollVoteModel(BaseModel):
     body: str
+
+# elections models start
+
+class ElectionCampaignModel(BaseModel):
+    party: Optional[PyObjectId]
+    name: str
+
+class ElectionCandidateModel(BaseModel):
+    user: PyObjectId
+    name: str
+
+class ElectionTicketModel(DocumentModel):
+    candidate: ElectionCandidateModel
+    running_mate: Optional[ElectionCandidateModel]
+    name: str
+    campaign: Optional[ElectionCampaignModel]
+
+class ElectionVoterModel(BaseModel):
+    user: UserModel
+    voted: bool
+
+class ElectionBallot(BaseModel):
+    rankings: list
+# LIVE RESULTS ENDPOINT NOT NECESSARY
+# IGNORE FOR NOW!!!
+#
+# how to write this aggregation
+# match election
+# map - remove eliminated candidates from ballots
+# count all array elements at index 0
+# REMEMBER: write new doc to temporary field;replace root with new field
+class ElectionModel(DocumentModel):
+    title: str
+    choices: List[ElectionTicketModel]
+    voters: List[ElectionVoterModel]
+    ballots: List[ElectionBallot]
