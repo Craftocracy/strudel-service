@@ -22,6 +22,7 @@ class Ballot(BaseModel):
     first: Candidate
     second: Candidate
     third: Candidate
+    fourth: Candidate
 
     @model_validator(mode='before')
     def alias_values(cls, values):
