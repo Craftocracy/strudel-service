@@ -82,7 +82,7 @@ async def after_vote(poll_id: str):
     if goal_name != "":
         await db.polls.update_one({"_id": ObjectId(poll_id)}, {"$set": {"can_change_vote": False}})
         await bot.notify(f"{goal_name}: {poll["title"]}\n"
-                         f"{webapp_page(f"/polls/{poll_id}")}")
+                         f"<{webapp_page(f"/polls/{poll_id}")}>")
 
 
 @router.post("/{poll_id}/vote", dependencies=[Depends(discord.requires_authorization)])
