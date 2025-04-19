@@ -10,3 +10,4 @@ typing_extensions
 requests
 pymongo
 py-cord
+catppuccin
