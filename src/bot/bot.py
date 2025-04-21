@@ -150,7 +150,7 @@ async def leaderboard(ctx: discord.ApplicationContext): # a slash command will b
     db_leaderboard = await db.users.aggregate(pipeline).to_list()
     msg = ""
     for party in db_leaderboard:
-        msg += f"{party["party"]} - {party["percentage"]}% ({str(party["count"])})\n"
+        msg += f"{party["party"]} - {party["percentage"]:.2f}% ({str(party["count"])})\n"
 
     await ctx.respond(msg)
 
