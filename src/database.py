@@ -1,9 +1,15 @@
+from typing import List
+
+from bson import ObjectId
 from bson.codec_options import CodecOptions
 import motor.motor_asyncio
 from pymongo import ReturnDocument
+from models import VoterStatusModel, ElectionBallot, ElectionTicketModel
 
 options = CodecOptions(tz_aware=True)
 
+class InvalidBallotException(Exception):
+    pass
 
 class Database:
     def __init__(self, uri: str):
@@ -233,6 +239,50 @@ class Database:
                             choice["votes"] = 0
         return result
 
+    async def user_has_permission(self, user: ObjectId, permission: str) -> bool:
+        pipeline = [
+            {
+                '$match': {
+                    '_id': user
+                }
+            }, {
+                '$lookup': {
+                    'from': 'roles',
+                    'localField': 'roles',
+                    'foreignField': '_id',
+                    'as': 'roleDetails'
+                }
+            }, {
+                '$addFields': {
+                    'allPermissions': {
+                        '$reduce': {
+                            'input': '$roleDetails.permissions',
+                            'initialValue': [],
+                            'in': {
+                                '$setUnion': [
+                                    '$$value', '$$this'
+                                ]
+                            }
+                        }
+                    }
+                }
+            }, {
+                '$match': {
+                    'allPermissions': permission
+                }
+            }, {
+                '$project': {
+                    '_id': 1,
+                    'roles': 1
+                }
+            }
+        ]
+        result = await self.users.aggregate(pipeline).to_list(length=1)
+        if result:
+            return True
+        else:
+            return False
+
     async def get_poll(self, query: dict, respect_secrets: bool = True) -> dict:
         search = await self.query_polls(query, respect_secrets=respect_secrets)
         if len(search) == 0:
@@ -256,3 +306,119 @@ class Database:
         if len(search) == 0:
             raise KeyError
         return search[0]
+
+    async def is_ballot_valid(self, election: str, ballot: ElectionBallot):
+        election = await self.elections.find_one({"_id": election})
+        candidates: List[ObjectId] = [ticket["_id"] for ticket in election["choices"]]
+        # check that the correct amount of candidates are selected
+        if len(candidates) != 2:
+            if len(candidates) != len(ballot.rankings):
+                raise InvalidBallotException("Invalid amount of candidates selected. len(candidates) must equal len(ballot.rankings)")
+        elif len(ballot.rankings) != 1:
+            raise InvalidBallotException("Invalid amount of candidates selected. len(ballot.rankings) must equal 1")
+        # check for duplicate entries
+        seen = set()
+        for candidate in ballot.rankings:
+            if candidate in seen:
+                raise InvalidBallotException(f"Caught duplicate candidate: {candidate}")
+            seen.add(candidate)
+        # check for unknown candidates
+        for candidate in ballot.rankings:
+            if candidate not in candidates:
+                raise InvalidBallotException(f"Caught unknown candidate: {candidate}")
+        return True
+
+
+
+    async def get_voter_status(self, user: ObjectId, election: str) -> VoterStatusModel:
+        pipeline = [
+            {
+                '$match': {
+                    '_id': election
+                }
+            }, {
+                '$project': {
+                    'voter': {
+                        '$arrayElemAt': [
+                            {
+                                '$filter': {
+                                    'input': '$voters',
+                                    'as': 'voter',
+                                    'cond': {
+                                        '$eq': [
+                                            '$$voter.user', user
+                                        ]
+                                    }
+                                }
+                            }, 0
+                        ]
+                    },
+                    'open': 1
+                }
+            }, {
+                '$set': {
+                    'user_is_voter': {
+                        '$cond': {
+                            'if': {
+                                '$gt': [
+                                    {
+                                        '$type': '$voter'
+                                    }, 'missing'
+                                ]
+                            },
+                            'then': True,
+                            'else': False
+                        }
+                    }
+                }
+            }, {
+                '$set': {
+                    'user_has_voted': {
+                        '$cond': {
+                            'if': {
+                                '$eq': [
+                                    '$user_is_voter', True
+                                ]
+                            },
+                            'then': '$voter.voted',
+                            'else': False
+                        }
+                    }
+                }
+            }, {
+                '$set': {
+                    'user_can_vote': {
+                        '$cond': {
+                            'if': {
+                                '$and': [
+                                    {
+                                        '$eq': [
+                                            '$open', True
+                                        ]
+                                    }, {
+                                        '$eq': [
+                                            '$user_is_voter', True
+                                        ]
+                                    }, {
+                                        '$eq': [
+                                            '$user_has_voted', False
+                                        ]
+                                    }
+                                ]
+                            },
+                            'then': True,
+                            'else': False
+                        }
+                    }
+                }
+            }, {
+                '$project': {
+                    'voter': 0
+                }
+            }
+        ]
+        result = await self.elections.aggregate(pipeline).to_list(length=1)
+        if result:
+            return VoterStatusModel(**result[0])
+        else:
+            raise KeyError
