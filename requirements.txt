@@ -1,6 +1,6 @@
 catppuccin==2.4.1
 py-cord==2.6.1
-fastapi==0.115.12
+fastapi==0.115.5
 fastapi_discord==0.2.7
 motor==3.7.0
 pydantic==2.11.3
