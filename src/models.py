@@ -214,21 +214,22 @@ class PostPollVoteModel(BaseModel):
 # elections models start
 
 class ElectionCampaignModel(BaseModel):
-    party: Optional[PyObjectId] = None
+    party: Optional[ObjectIdType] = None
     name: str
 
 class ElectionCandidateModel(BaseModel):
     user: Optional[ObjectIdType] = None
     name: str
 
-class ElectionTicketModel(DocumentModel):
+class ElectionTicketModel(BaseModel):
+    id: ObjectIdType = Field(validation_alias="_id")
     candidate: ElectionCandidateModel
-    running_mate: Optional[ElectionCandidateModel]
-    name: str
-    campaign: Optional[ElectionCampaignModel]
+    running_mate: Optional[ElectionCandidateModel] = None
+    campaign: Optional[ElectionCampaignModel] = None
+
 
 class ElectionVoterModel(BaseModel):
-    user: UserModel
+    user: ObjectIdType
     voted: bool
 
 class ElectionBallot(BaseModel):
@@ -243,21 +244,22 @@ class ElectionBallot(BaseModel):
 # REMEMBER: write new doc to temporary field;replace root with new field
 
 class VoterStatusModel(BaseModel):
-    id: str = Field(alias="_id")
+    id: str = Field(validation_alias="_id")
     open: bool
     user_is_voter: bool
     user_has_voted: bool
     user_can_vote: bool
 
-    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
 
 
-
-class ElectionModel(DocumentModel):
+class GetElectionModel(BaseModel):
+    id: str = Field(validation_alias="_id")
     title: str
     choices: List[ElectionTicketModel]
     voters: List[ElectionVoterModel]
-    ballots: List[ElectionBallot]
+    total_voters: int
+    total_voted: int
+
 
 class ScheduleModel(BaseModel):
     opens: datetime
@@ -272,6 +274,7 @@ class InsertElectionModel(BaseModel):
     choices: List = []
     voters: List = []
     ballots: List = []
+
 
 class InsertDocumentBaseModel(BaseModel):
     id: ObjectIdType = Field(default_factory=ObjectId, alias="_id")
