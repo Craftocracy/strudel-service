@@ -1,7 +1,5 @@
 import discord
 from bson import ObjectId
-from discord.ext.commands import Context
-from discord.types.interactions import InteractionContextType
 from catppuccin import PALETTE
 
 from shared import config, db, webapp_page
@@ -11,6 +9,7 @@ intents.message_content = True
 intents.messages = True
 
 client = discord.Bot(intents=intents)
+
 
 def global_command(**kwargs):
     # This function returns a pre-configured slash_command decorator
@@ -28,17 +27,24 @@ def global_command(**kwargs):
             },
             **kwargs
         )(func)  # Pass the function to the original decorator
+
     return decorator
+
 
 def get_color(color: str):
     hexc = getattr(PALETTE.latte.colors, color).hex
     color_int = int(hexc.lstrip("#"), 16)
     return color_int
 
+
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
+
+
 discord.Colour.blurple()
+
+
 @global_command(description="Find a user's Strudel Service account")
 async def whois(ctx: discord.ApplicationContext, user: discord.Option(discord.User)):
     try:
@@ -54,19 +60,22 @@ async def whois(ctx: discord.ApplicationContext, user: discord.Option(discord.Us
             title="User info",
             color=get_color(strudel_user["party"]["color"])
         )
-        embed.add_field(name="User", value=f"[{strudel_user['name']}]({webapp_page(f"/users/{strudel_user['_id']}")})", inline=True)
+        embed.add_field(name="User", value=f"[{strudel_user['name']}]({webapp_page(f"/users/{strudel_user['_id']}")})",
+                        inline=True)
         embed.add_field(name="Discord", value=f"<@{strudel_user['dc_uuid']}>", inline=True)
-        embed.add_field(name="Party", value=f"[{strudel_user["party"]["shorthand"]}] {strudel_user["party"]["name"]}", inline=False)
+        embed.add_field(name="Party", value=f"[{strudel_user["party"]["shorthand"]}] {strudel_user["party"]["name"]}",
+                        inline=False)
         embed.add_field(name="Status", value=status, inline=True)
-        embed.add_field(name="Registration Date", value=f"<t:{registration_date}:F> (<t:{registration_date}:R>)", inline=False)
+        embed.add_field(name="Registration Date", value=f"<t:{registration_date}:F> (<t:{registration_date}:R>)",
+                        inline=False)
         await ctx.respond(embed=embed)
     except KeyError:
         await ctx.respond("No Strudel user found.")
 
 
-
-@global_command(description="Sends the current party active membership breakdown") # this decorator makes a slash command
-async def leaderboard(ctx: discord.ApplicationContext): # a slash command will be created with the name "ping"
+@global_command(
+    description="Sends the current party active membership breakdown")  # this decorator makes a slash command
+async def leaderboard(ctx: discord.ApplicationContext):  # a slash command will be created with the name "ping"
     pipeline = [
         {
             '$match': {
@@ -154,7 +163,7 @@ async def leaderboard(ctx: discord.ApplicationContext): # a slash command will b
 
     await ctx.respond(msg)
 
+
 async def notify(message: str):
     channel = await client.fetch_channel(config["discord"]["notifications_channel"])
     await channel.send(message)
-

@@ -1,9 +1,11 @@
 from typing import Optional, Annotated
+
 from bson import ObjectId
 from fastapi import APIRouter, Query
-from shared import db
-import models
 from pydantic import BaseModel, BeforeValidator
+
+import models
+from shared import db
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

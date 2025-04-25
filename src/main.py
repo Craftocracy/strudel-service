@@ -1,29 +1,22 @@
-from typing import Annotated
-
-from fastapi import FastAPI, Depends
-from fastapi.responses import JSONResponse
-from fastapi_discord import RateLimited, Unauthorized
-from fastapi_discord.exceptions import ClientSessionNotInitialized
-from bson import ObjectId
-from fastapi.middleware.cors import CORSMiddleware
-
-import models
 import asyncio
 from contextlib import asynccontextmanager
 
-from routers import session, account, users, proposals, polls
-from shared import discord, db, UserNotRegistered, config, get_current_user
+from bson import ObjectId
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi_discord import RateLimited, Unauthorized
+from fastapi_discord.exceptions import ClientSessionNotInitialized
+
+import models
 from bot import bot
+from routers import session, account, users, proposals, polls, elections
+from shared import discord, db, UserNotRegistered, config
 
 
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if await db.elections.find_one({"current": True}) is None:
-        voters = []
-        async for user in db.users.find({"inactive": False}):
-            voters.append({"user": ObjectId(user["_id"]), "voted": False})
-        await db.elections.insert_one({"current": True, "registered_voters": voters, "ballots": []})
     await discord.init()
 
     loop = asyncio.get_event_loop()
@@ -37,7 +30,7 @@ app.include_router(account.router)
 app.include_router(users.router)
 app.include_router(proposals.router)
 app.include_router(polls.router)
-
+app.include_router(elections.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config["cors_origins"],
@@ -45,54 +38,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/election", response_model=models.ElectionModel, dependencies=[Depends(discord.requires_authorization)])
-async def get_election():
-    election = await db.elections.find_one({"current": True})
-    voters = []
-    for i in election["registered_voters"]:
-        voters.append(await db.get_user({"_id": i["user"]}))
-    return {"voters": voters, "votes_cast": len(election["ballots"])}
-
-
-async def user_allowed_to_vote(current_user: Annotated[dict, Depends(get_current_user)]):
-    election = await db.elections.find_one({"current": True})
-    user_found = False
-    for i in election["registered_voters"]:
-        if i["user"] == current_user["_id"]:
-            user_found = True
-            if i["voted"]:
-                raise Exception()
-    if not user_found:
-        raise Exception
-    return True
-
-
-@app.get("/am_i_even_allowed_to_vote", response_model=models.VoterStatusModel,
-         dependencies=[Depends(discord.requires_authorization)])
-async def get_am_i_even_allowed_to_vote(current_user: Annotated[dict, Depends(get_current_user)]):
-    election = await db.elections.find_one({"current": True})
-    user_found = False
-    for i in election["registered_voters"]:
-        if i["user"] == current_user["_id"]:
-            user_found = True
-            if i["voted"]:
-                return {"allowed": False, "reason": "You have already voted."}
-    if not user_found:
-        return {"allowed": False, "reason": "You cannot vote because you registered after the election deadline."}
-    return {"allowed": True, "reason": "You are registered to vote."}
-
-
-@app.post("/election", dependencies=[Depends(user_allowed_to_vote), Depends(discord.requires_authorization)])
-async def cast_ballot(ballot: models.Ballot, current_user: Annotated[dict, Depends(get_current_user)]):
-    election = await db.elections.find_one({"current": True})
-    print(ballot)
-    await db.elections.update_one({"_id": election["_id"]}, {"$set": {"registered_voters.$[elem].voted": True}},
-                                  array_filters=[{"elem.user": ObjectId(current_user["_id"])}])
-    await db.elections.update_one({"_id": election["_id"]}, {"$push": {"ballots": ballot.model_dump()}})
-    print(election)
-    return ""
 
 
 @app.get("/parties/", response_model=models.PartyCollection)
