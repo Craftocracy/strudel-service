@@ -1,19 +1,17 @@
-from typing import Annotated
-
-from fastapi import FastAPI, Depends
-from fastapi.responses import JSONResponse
-from fastapi_discord import RateLimited, Unauthorized
-from fastapi_discord.exceptions import ClientSessionNotInitialized
-from bson import ObjectId
-from fastapi.middleware.cors import CORSMiddleware
-
-import models
 import asyncio
 from contextlib import asynccontextmanager
 
-from routers import session, account, users, proposals, polls, elections
-from shared import discord, db, UserNotRegistered, config, get_current_user
+from bson import ObjectId
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi_discord import RateLimited, Unauthorized
+from fastapi_discord.exceptions import ClientSessionNotInitialized
+
+import models
 from bot import bot
+from routers import session, account, users, proposals, polls, elections
+from shared import discord, db, UserNotRegistered, config
 
 
 # noinspection PyShadowingNames,PyUnusedLocal

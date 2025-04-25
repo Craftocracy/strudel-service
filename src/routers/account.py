@@ -1,10 +1,12 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi_discord import User
+
 from bot import bot
+from models import RegistrationModel, UserModel, UserAccountModel
 from shared import discord, get_current_user, requires_registration, registration_allowed, db, get_minecraft_user, \
     webapp_page
-from fastapi_discord import User
-from models import RegistrationModel, UserModel, UserAccountModel
-from typing import Annotated
 
 router = APIRouter(dependencies=[Depends(discord.requires_authorization)], prefix="/account", tags=["Account"])
 

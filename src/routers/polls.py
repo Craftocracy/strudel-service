@@ -1,13 +1,14 @@
+import math
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, List, Optional
+
 from bson import ObjectId
 from fastapi import APIRouter, Depends, BackgroundTasks, Query
 from pydantic import BaseModel
 
+import models
 from bot import bot
 from shared import db, discord, get_current_user, maybe_get_current_user, webapp_page
-import models
-import math
-from datetime import datetime, timedelta, timezone
 
 router = APIRouter(prefix="/polls", tags=["Polls"])
 

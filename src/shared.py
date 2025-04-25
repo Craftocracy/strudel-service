@@ -1,11 +1,13 @@
-from fastapi import Depends, Request
-from fastapi_discord import DiscordOAuthClient, User, Unauthorized
-import yaml
-import requests
 import os
 from typing import Annotated
-from database import Database
 from urllib.parse import urljoin
+
+import requests
+import yaml
+from fastapi import Depends, Request
+from fastapi_discord import DiscordOAuthClient, User, Unauthorized
+
+from database import Database
 
 with open(os.path.join(os.environ["DATADIR"], "config.yml"), 'r') as file:
     config: dict = yaml.safe_load(file)

@@ -1,15 +1,14 @@
+import datetime
 from typing import Annotated, Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, BackgroundTasks, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from bot import bot
-from fastapi.responses import JSONResponse
-import datetime
-
-from shared import db, get_current_user, discord, webapp_page
 import models
+from bot import bot
+from shared import db, get_current_user, discord, webapp_page
 
 router = APIRouter(prefix="/proposals", tags=["Proposals"])
 

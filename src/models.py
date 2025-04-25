@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import List, Union, Literal, Optional, Any
 
 from bson import ObjectId
-from pydantic import BaseModel, Field, model_validator, ConfigDict
-from pydantic.functional_validators import BeforeValidator
 from fastapi_discord import User
+from pydantic import BaseModel, Field, model_validator
+from pydantic.functional_validators import BeforeValidator
 from pydantic_core import core_schema
-
 from typing_extensions import Annotated
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
+
 
 class ObjectIdType(ObjectId):
     @classmethod
@@ -37,6 +37,7 @@ class ObjectIdType(ObjectId):
             raise ValueError("Invalid ObjectId")
 
         return ObjectId(value)
+
 
 Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
@@ -211,15 +212,18 @@ class PollModel(PollReferenceModel):
 class PostPollVoteModel(BaseModel):
     body: str
 
+
 # elections models start
 
 class ElectionCampaignModel(BaseModel):
     party: Optional[ObjectIdType] = None
     name: str
 
+
 class ElectionCandidateModel(BaseModel):
     user: Optional[ObjectIdType] = None
     name: str
+
 
 class ElectionTicketModel(BaseModel):
     id: ObjectIdType = Field(validation_alias="_id")
@@ -232,8 +236,11 @@ class ElectionVoterModel(BaseModel):
     user: ObjectIdType
     voted: bool
 
+
 class ElectionBallot(BaseModel):
     rankings: List[ObjectIdType]
+
+
 # LIVE RESULTS ENDPOINT NOT NECESSARY
 # IGNORE FOR NOW!!!
 #
@@ -251,7 +258,6 @@ class VoterStatusModel(BaseModel):
     user_can_vote: bool
 
 
-
 class GetElectionModel(BaseModel):
     id: str = Field(validation_alias="_id")
     title: str
@@ -264,6 +270,7 @@ class GetElectionModel(BaseModel):
 class ScheduleModel(BaseModel):
     opens: datetime
     closes: datetime
+
 
 class InsertElectionModel(BaseModel):
     slug: str = Field(serialization_alias="_id")

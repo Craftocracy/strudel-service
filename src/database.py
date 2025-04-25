@@ -1,15 +1,18 @@
 from typing import List
 
+import motor.motor_asyncio
 from bson import ObjectId
 from bson.codec_options import CodecOptions
-import motor.motor_asyncio
 from pymongo import ReturnDocument
-from models import VoterStatusModel, ElectionBallot, ElectionTicketModel
+
+from models import VoterStatusModel, ElectionBallot
 
 options = CodecOptions(tz_aware=True)
 
+
 class InvalidBallotException(Exception):
     pass
+
 
 class Database:
     def __init__(self, uri: str):
@@ -313,7 +316,8 @@ class Database:
         # check that the correct amount of candidates are selected
         if len(candidates) != 2:
             if len(candidates) != len(ballot.rankings):
-                raise InvalidBallotException("Invalid amount of candidates selected. len(candidates) must equal len(ballot.rankings)")
+                raise InvalidBallotException(
+                    "Invalid amount of candidates selected. len(candidates) must equal len(ballot.rankings)")
         elif len(ballot.rankings) != 1:
             raise InvalidBallotException("Invalid amount of candidates selected. len(ballot.rankings) must equal 1")
         # check for duplicate entries
@@ -327,8 +331,6 @@ class Database:
             if candidate not in candidates:
                 raise InvalidBallotException(f"Caught unknown candidate: {candidate}")
         return True
-
-
 
     async def get_voter_status(self, user: ObjectId, election: str) -> VoterStatusModel:
         pipeline = [
