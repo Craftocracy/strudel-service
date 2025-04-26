@@ -150,4 +150,4 @@ async def post_election_vote(current_user: Annotated[dict, Depends(get_current_u
             raise HTTPException(status_code=403)
         elif status.user_can_vote:
             await db.elections.update_one({"_id": election, "voters.user": current_user["_id"]}, update)
-            return "voted!"
+        return "voted!"
