@@ -10,7 +10,7 @@ from fastapi_discord.exceptions import ClientSessionNotInitialized
 
 import models
 from bot import bot
-from routers import session, account, users, proposals, polls, elections
+from routers import session, account, users, proposals, polls, elections, polls_v2
 from shared import discord, db, UserNotRegistered, config
 
 
@@ -31,6 +31,7 @@ app.include_router(users.router)
 app.include_router(proposals.router)
 app.include_router(polls.router)
 app.include_router(elections.router)
+app.include_router(polls_v2.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config["cors_origins"],
