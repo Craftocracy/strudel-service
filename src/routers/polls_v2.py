@@ -18,6 +18,11 @@ manage_election_deps = [Depends(discord.requires_authorization), Depends(manage_
 
 router = APIRouter(prefix="/polls", tags=["Polls"])
 
+@router.get("/{poll_id}", response_model=PollModel)
+async def get__poll(poll_id: ObjectIdType):
+    poll = await get_poll(poll_id)
+    return poll
+
 @router.post("/", dependencies=manage_election_deps, response_model=PollModel)
 async def post_poll(poll: PollModel):
     inserted_poll = await create_poll(poll)
