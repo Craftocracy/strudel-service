@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Union, Literal, Optional, Any
 
 from bson import ObjectId
@@ -38,6 +38,8 @@ class ObjectIdType(ObjectId):
 
         return ObjectId(value)
 
+def current_time_factory():
+    return datetime.now(timezone.utc)
 
 Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
@@ -285,13 +287,6 @@ class InsertElectionModel(BaseModel):
 
 class InsertDocumentBaseModel(BaseModel):
     id: ObjectIdType = Field(default_factory=ObjectId, alias="_id")
-
-    @model_validator(mode='before')
-    def enforce_constant(cls, values):
-        # Ensure the field is either not provided or matches the default value
-        if "id" in values or "_id" in values:
-            raise ValueError("id cannot be set.")
-        return values
 
 
 class InsertElectionCandidateModel(InsertDocumentBaseModel):

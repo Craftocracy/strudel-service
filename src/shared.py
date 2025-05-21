@@ -16,7 +16,7 @@ discord: DiscordOAuthClient = DiscordOAuthClient(
     config["discord"]["client_id"], config["discord"]["client_secret"], config["discord"]["redirect_url"], ["identify"]
 )
 
-db: Database = Database(config["database"]["strudel"]["mongo_uri"])
+db: Database = Database()
 
 
 class UserNotRegistered(Exception):

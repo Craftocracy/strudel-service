@@ -1,6 +1,6 @@
 from typing import List
 
-import motor.motor_asyncio
+from database.db_connection import get_connection
 from bson import ObjectId
 from bson.codec_options import CodecOptions
 from pymongo import ReturnDocument
@@ -15,8 +15,8 @@ class InvalidBallotException(Exception):
 
 
 class Database:
-    def __init__(self, uri: str):
-        self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
+    def __init__(self):
+        self._client = get_connection()
         self._db = self._client.get_database("strudel")
         self.users = self._db.get_collection("users")
         self.parties = self._db.get_collection("parties")

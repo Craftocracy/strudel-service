@@ -10,7 +10,7 @@ import models
 from bot import bot
 from shared import db, discord, get_current_user, maybe_get_current_user, webapp_page
 
-router = APIRouter(prefix="/polls", tags=["Polls"])
+router = APIRouter(prefix="/legacy/polls", tags=["Polls (legacy)"])
 
 
 def thresholds(total: int) -> List[int]:
