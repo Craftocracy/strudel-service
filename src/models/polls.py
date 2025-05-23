@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Union, Literal, Dict, Annotated, Optional
+from typing import List, Union, Literal, Dict, Annotated, Optional, Tuple
 from pydantic import BaseModel, Field, conint
 
 from models import ObjectIdType, InsertDocumentBaseModel, ElectionCandidateModel, ElectionCampaignModel, \
@@ -61,7 +61,26 @@ class TempVoterStatus(BaseModel):
     can_vote: bool
     reason: str
 
+# star results model
+
+class StarMatchupResults(BaseModel):
+    win: int
+    lose: int
+    tie: int
+
+class StarResults(BaseModel):
+    results_type: Literal["star"]
+    total_scores: Dict[str, int]
+    highlighted_races: List[Tuple[str, str]] = []
+    preference_matrix: Dict[str, Dict[str, StarMatchupResults ]]
+
 # polls
+PollResults = Union[StarResults]
+
+class PollResultsModel(BaseModel):
+    public: bool = False
+    data: Optional[PollResults] = Field(discriminator="results_type", default=None)
+
 class PollModel(InsertDocumentBaseModel):
     title: str
     choices: List[PollChoice]
@@ -71,4 +90,7 @@ class PollModel(InsertDocumentBaseModel):
     voter_filter: dict = {"inactive": False}
     dynamic_voters: bool = False
     secret: bool = False
+
+class PollWithResultsModel(PollModel):
+    results: PollResultsModel
 
