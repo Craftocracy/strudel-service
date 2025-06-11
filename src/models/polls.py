@@ -81,13 +81,17 @@ class PollResultsModel(BaseModel):
     public: bool = False
     data: Optional[PollResults] = Field(discriminator="results_type", default=None)
 
+class VoterFilterModel(BaseModel):
+    inactive: Optional[bool] = False
+    party: Optional[ObjectIdType] = None
+
 class PollModel(InsertDocumentBaseModel):
     title: str
     choices: List[PollChoice]
     timestamp: datetime = Field(default_factory=current_time_factory)
     open: bool = True
     ballot_type: ballot_type
-    voter_filter: dict = {"inactive": False}
+    voter_filter: VoterFilterModel = Field(default_factory=VoterFilterModel)
     dynamic_voters: bool = False
     secret: bool = False
 
