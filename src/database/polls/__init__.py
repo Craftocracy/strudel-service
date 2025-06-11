@@ -49,7 +49,7 @@ async def get_voter(poll_id: ObjectId, voter_id: ObjectId, dynamic=False) -> Pol
         search = await voters.find_one({"poll": poll_id, "user": voter_id})
         if search is None:
             poll = await get_poll(poll_id)
-            voter = await users.aggregate(fixed_poll_voters_pipeline({"_id": voter_id} | poll.voter_filter, poll.id)).to_list()
+            voter = await users.aggregate(fixed_poll_voters_pipeline({"_id": voter_id} | poll.voter_filter.model_dump(), poll.id)).to_list()
             if voter is None:
                 raise Exception("Voter does not meet requirements")
             TypeAdapter(PollVoter).validate_python(voter[0])
@@ -60,7 +60,7 @@ async def get_voter(poll_id: ObjectId, voter_id: ObjectId, dynamic=False) -> Pol
 async def create_poll(poll: PollModel):
     inserted = await polls.insert_one(poll.model_dump(by_alias=True))
     if poll.dynamic_voters is False:
-        poll_voters = await users.aggregate(fixed_poll_voters_pipeline(poll.voter_filter, inserted.inserted_id)).to_list()
+        poll_voters = await users.aggregate(fixed_poll_voters_pipeline(poll.voter_filter.model_dump(), inserted.inserted_id)).to_list()
         TypeAdapter(List[PollVoter]).validate_python(poll_voters)
 
         await voters.insert_many(poll_voters)
