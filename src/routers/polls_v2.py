@@ -58,7 +58,7 @@ async def temp_voter_status(poll_id: ObjectIdType, current_user: Annotated[dict,
     voter = await voters.find_one({"poll": poll_id, "user": current_user["_id"]})
     if voter is None:
         if poll.dynamic_voters is True:
-            user_search = await users.find_one({"_id": current_user["_id"]} | poll.voter_filter)
+            user_search = await users.find_one({"_id": current_user["_id"]} | poll.voter_filter.model_dump(exclude_none=True))
             if user_search is None:
                 return {"can_vote": False, "reason": "User is not eligible to vote in poll"}
             else:
