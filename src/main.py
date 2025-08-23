@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
     await discord.init()
 
     loop = asyncio.get_event_loop()
-    bot_task = loop.create_task(bot.client.start(config["discord"]["bot_token"]))
+    bot_task = loop.create_task(bot.client.start(config.discord.token))
     yield
 
 
@@ -34,7 +34,7 @@ app.include_router(elections.router)
 app.include_router(polls_v2.router)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config["cors_origins"],
+    allow_origins=config.webserver.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

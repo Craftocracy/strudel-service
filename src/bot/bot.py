@@ -165,5 +165,5 @@ async def leaderboard(ctx: discord.ApplicationContext):  # a slash command will 
 
 
 async def notify(message: str):
-    channel = await client.fetch_channel(config["discord"]["notifications_channel"])
+    channel = await client.fetch_channel(config.discord.notification_channel)
     await channel.send(message)

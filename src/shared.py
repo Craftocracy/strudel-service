@@ -6,17 +6,17 @@ import requests
 import yaml
 from fastapi import Depends, Request
 from fastapi_discord import DiscordOAuthClient, User, Unauthorized
+from models.config import ConfigModel
 
-from database import Database
 
 with open(os.path.join(os.environ["DATADIR"], "config.yml"), 'r') as file:
-    config: dict = yaml.safe_load(file)
-
+    config = ConfigModel(**yaml.safe_load(file))
+from database import Database
+db: Database = Database()
 discord: DiscordOAuthClient = DiscordOAuthClient(
-    config["discord"]["client_id"], config["discord"]["client_secret"], config["discord"]["redirect_url"], ["identify"]
+    config.discord.client_id, config.discord.client_secret, config.discord.auth_redirect, ["identify"]
 )
 
-db: Database = Database()
 
 
 class UserNotRegistered(Exception):
@@ -56,7 +56,7 @@ async def registration_allowed(current_user: Annotated[dict, Depends(get_current
 
 
 async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
-    linking_db = requests.get(config["database"]["discord_linking"]["url"]).json()
+    linking_db = requests.get(config.database.discord_integration).json()
 
     for player in linking_db:
         if player["discordID"] == user.id:
@@ -65,7 +65,7 @@ async def get_minecraft_user(user: Annotated[User, Depends(discord.user)]):
 
 
 def webapp_page(path: str):
-    return urljoin(config["web_base"], path)
+    return urljoin(config.webserver.frontend_base, path)
 
 
 print("shared called")
