@@ -6,17 +6,17 @@ import requests
 import yaml
 from fastapi import Depends, Request
 from fastapi_discord import DiscordOAuthClient, User, Unauthorized
-from models.config import ConfigModel
 
+from models.config import ConfigModel
 
 with open(os.path.join(os.environ["DATADIR"], "config.yml"), 'r') as file:
     config = ConfigModel(**yaml.safe_load(file))
 from database import Database
+
 db: Database = Database()
 discord: DiscordOAuthClient = DiscordOAuthClient(
     config.discord.client_id, config.discord.client_secret, config.discord.auth_redirect, ["identify"]
 )
-
 
 
 class UserNotRegistered(Exception):

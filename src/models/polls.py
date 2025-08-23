@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import List, Union, Literal, Dict, Annotated, Optional, Tuple
-from pydantic import BaseModel, Field, conint
+from typing import List, Union, Literal, Dict, Optional, Tuple
+
+from pydantic import BaseModel, Field
 
 from models import ObjectIdType, InsertDocumentBaseModel, ElectionCandidateModel, ElectionCampaignModel, \
     current_time_factory
@@ -12,31 +13,39 @@ class LegacyInstantRunoffBallot(InsertDocumentBaseModel):
     ## LEGACY IRV VOTING WONT BE SUPPORTED  DONT BOTHER VALIDATING
     rankings: Dict[str, str]
 
+
 class InstantRunoffBallot(InsertDocumentBaseModel):
     ballot_type: Literal["irv"]
     rankings: List[ObjectIdType]
+
 
 class ChoiceScore(BaseModel):
     choice: ObjectIdType
     score: int = Field(ge=0, le=5)
 
+
 class StarBallot(InsertDocumentBaseModel):
     ballot_type: Literal["star"]
     scores: List[ChoiceScore]
+
 
 class ApprovalBallot(InsertDocumentBaseModel):
     ballot_type: Literal["approval"]
     approve: bool | None
 
+
 class ChooseOneBallot(InsertDocumentBaseModel):
     ballot_type: Literal["choose-one"]
     choice: ObjectIdType
 
+
 ballot_type = Literal["irv", "star", "approval", "choose-one"]
 Ballot = Union[InstantRunoffBallot, StarBallot, ApprovalBallot, ChooseOneBallot]
 
+
 class PostBallot(BaseModel):
     ballot: Ballot = Field(discriminator="ballot_type")
+
 
 # choices
 class ElectionChoice(InsertDocumentBaseModel):
@@ -44,11 +53,14 @@ class ElectionChoice(InsertDocumentBaseModel):
     running_mate: Optional[ElectionCandidateModel] = None
     campaign: Optional[ElectionCampaignModel] = None
 
+
 class TextChoice(InsertDocumentBaseModel):
     text: str
 
 
 PollChoice = Union[TextChoice, ElectionChoice]
+
+
 # voters
 class PollVoter(InsertDocumentBaseModel):
     poll: ObjectIdType
@@ -61,6 +73,7 @@ class TempVoterStatus(BaseModel):
     can_vote: bool
     reason: str
 
+
 # star results model
 
 class StarMatchupResults(BaseModel):
@@ -68,22 +81,27 @@ class StarMatchupResults(BaseModel):
     lose: int
     tie: int
 
+
 class StarResults(BaseModel):
     results_type: Literal["star"]
     total_scores: Dict[str, int]
     highlighted_races: List[Tuple[str, str]] = []
-    preference_matrix: Dict[str, Dict[str, StarMatchupResults ]]
+    preference_matrix: Dict[str, Dict[str, StarMatchupResults]]
+
 
 # polls
 PollResults = Union[StarResults]
+
 
 class PollResultsModel(BaseModel):
     public: bool = False
     data: Optional[PollResults] = Field(discriminator="results_type", default=None)
 
+
 class VoterFilterModel(BaseModel):
     inactive: Optional[bool] = False
     party: Optional[ObjectIdType] = None
+
 
 class PollModel(InsertDocumentBaseModel):
     title: str
@@ -95,6 +113,6 @@ class PollModel(InsertDocumentBaseModel):
     dynamic_voters: bool = False
     secret: bool = False
 
+
 class PollWithResultsModel(PollModel):
     results: PollResultsModel
-

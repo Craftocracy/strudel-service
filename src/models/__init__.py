@@ -38,8 +38,10 @@ class ObjectIdType(ObjectId):
 
         return ObjectId(value)
 
+
 def current_time_factory():
     return datetime.now(timezone.utc)
+
 
 Pronoun = Literal['they', 'she', 'he', 'it', 'was']
 
@@ -215,8 +217,6 @@ class PostPollVoteModel(BaseModel):
     body: str
 
 
-# elections models start
-
 class ElectionCampaignModel(BaseModel):
     party: Optional[ObjectIdType] = None
     name: str
@@ -227,69 +227,5 @@ class ElectionCandidateModel(BaseModel):
     name: str
 
 
-class ElectionTicketModel(BaseModel):
-    id: ObjectIdType = Field(validation_alias="_id")
-    candidate: ElectionCandidateModel
-    running_mate: Optional[ElectionCandidateModel] = None
-    campaign: Optional[ElectionCampaignModel] = None
-
-
-class ElectionVoterModel(BaseModel):
-    user: ObjectIdType
-    voted: bool
-
-
-class ElectionBallot(BaseModel):
-    rankings: List[ObjectIdType]
-
-
-# LIVE RESULTS ENDPOINT NOT NECESSARY
-# IGNORE FOR NOW!!!
-#
-# how to write this aggregation
-# match election
-# map - remove eliminated candidates from ballots
-# count all array elements at index 0
-# REMEMBER: write new doc to temporary field;replace root with new field
-
-class VoterStatusModel(BaseModel):
-    id: str = Field(validation_alias="_id")
-    open: bool
-    user_is_voter: bool
-    user_has_voted: bool
-    user_can_vote: bool
-
-
-class GetElectionModel(BaseModel):
-    id: str = Field(validation_alias="_id")
-    title: str
-    choices: List[ElectionTicketModel]
-    voters: List[ElectionVoterModel]
-    total_voters: int
-    total_voted: int
-
-
-class ScheduleModel(BaseModel):
-    opens: datetime
-    closes: datetime
-
-
-class InsertElectionModel(BaseModel):
-    slug: str = Field(serialization_alias="_id")
-    title: str
-    visible: bool = False
-    open: bool = False
-    schedule: Optional[ScheduleModel] = Field(default=None)
-    choices: List = []
-    voters: List = []
-    ballots: List = []
-
-
 class InsertDocumentBaseModel(BaseModel):
     id: ObjectIdType = Field(default_factory=ObjectId, alias="_id")
-
-
-class InsertElectionCandidateModel(InsertDocumentBaseModel):
-    candidate: ElectionCandidateModel
-    running_mate: Optional[ElectionCandidateModel] = None
-    campaign: Optional[ElectionCampaignModel] = None
