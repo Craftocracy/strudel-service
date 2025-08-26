@@ -52,4 +52,4 @@ class User(BaseModel):
     links: UserLinks
     roles: List[str]
     flags: UserFlags
-    party: List[UserAffiliation] = Field(lt=4)
+    party: ObjectIdType
