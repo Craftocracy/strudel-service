@@ -76,17 +76,21 @@ async def cast_vote(poll_id: ObjectId, voter_id: ObjectId, ballot: Ballot):
     if poll.open is False:
         raise Exception("Poll is closed")
     validate_ballot(poll, ballot)
-    async with ballot_lock:
-        voter = await get_voter(poll_id, voter_id, dynamic=poll.dynamic_voters)
-        if voter.voted is True:
-            # support changing vote eventually
-            raise Exception("User already voted")
-        inserted_ballot = await ballots.insert_one({"poll": poll.id} | ballot.model_dump(by_alias=True))
-        update = {"voted": True}
-        if poll.secret is False:
-            update["ballot"] = inserted_ballot.inserted_id
-        await voters.update_one({"_id": voter.id}, {"$set": update})
-        return
+    if poll.ao:
+        await ballots.insert_one({"poll": poll.id} | ballot.model_dump(by_alias=True))
+        raise Exception("Evil ass error")
+    else:
+        async with ballot_lock:
+            voter = await get_voter(poll_id, voter_id, dynamic=poll.dynamic_voters)
+            if voter.voted is True:
+                # support changing vote eventually
+                raise Exception("User already voted")
+            inserted_ballot = await ballots.insert_one({"poll": poll.id} | ballot.model_dump(by_alias=True))
+            update = {"voted": True}
+            if poll.secret is False:
+                update["ballot"] = inserted_ballot.inserted_id
+            await voters.update_one({"_id": voter.id}, {"$set": update})
+            return
 
 
 

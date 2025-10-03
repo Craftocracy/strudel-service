@@ -30,7 +30,7 @@ async def post_poll(poll: PollModel):
 
 @router.post("/{poll_id}/vote", dependencies=[Depends(discord.requires_authorization)])
 async def post_poll_vote(poll_id: ObjectIdType, ballot: PostBallot, current_user: Annotated[dict, Depends(get_current_user)]):
-    print(ballot.model_dump())
+    #print(ballot.model_dump())
     await cast_vote(poll_id, current_user["_id"], ballot.ballot)
     return
 
